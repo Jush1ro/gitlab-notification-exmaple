@@ -1,0 +1,72 @@
+stages:
+  - prepare
+  - build
+  - remove_tmp
+  - notification
+
+variables:
+    WORK_DIR: ${CI_PROJECT_DIR}
+    WORK_DIR_NAME: ${CI_PROJECT_NAME}
+    BRANCH: ${CI_COMMIT_REF_NAME}
+
+Get_project_data:
+  stage: prepare
+  tags:
+    - your-runner
+  only:
+    - master
+  script:
+    - cat something.txt
+  artifacts:
+    reports:
+      dotenv: vars.env   
+
+Build:
+  stage: build
+  tags:
+    - your-runner
+  only:
+    - master
+  script:
+    - build something
+
+
+Clean:
+  stage: remove_tmp
+  tags:
+    - your-runner
+  only:
+    - master
+  script:
+    - rm -rf ./tmp
+
+Success:
+  stage: notification
+  needs: ["Build"]
+  when: on_success
+  tags:
+    - your-runner
+  only:
+    - master
+  script:
+    - cp -r . ${CI_PROJECT_DIR}
+    - cd ${CI_PROJECT_DIR}
+    - sh .ci-notify.sh ✅
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME-$(cat ver.md)"
+    paths:
+      - artifact_1/
+      - artifact_2/
+      - artifact_3/
+
+Fail:
+  stage: notification
+  tags:
+    - firmware
+  only:
+    - nuggle_logic_3v
+  needs: ["Build"]
+  when: on_failure
+  script:
+    - sh .ci-notify.sh ❌
+    
